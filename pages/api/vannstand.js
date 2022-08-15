@@ -37,7 +37,7 @@ async function getData(url = "", data = {}) {
         // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
         // credentials: "same-origin", // include, *same-origin, omit
         headers: {
-            "X-API-KEY": "tPw/dsoaC0WHbLESGMO9uw==",
+            "X-API-KEY": NVE_API_KEY,
             Accept: "application/json",
             "Content-Type": "application/json",
         },
