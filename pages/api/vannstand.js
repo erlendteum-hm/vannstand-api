@@ -48,6 +48,6 @@ async function getData(url = "", data = {}) {
         // body: JSON.stringify(data), // body data type must match "Content-Type" header
     });
 
-    const data = await response.json(); // parses JSON response into native JavaScript objects
-    return data;
+    const measures = await response.json(); // parses JSON response into native JavaScript objects
+    return measures;
 }
