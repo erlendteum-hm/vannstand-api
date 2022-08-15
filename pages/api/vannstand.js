@@ -37,9 +37,10 @@ async function getData(url = "", data = {}) {
         // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
         // credentials: "same-origin", // include, *same-origin, omit
         headers: {
-            "X-API-KEY": NVE_API_KEY,
-            Accept: "application/json",
-            "Content-Type": "application/json",
+            "Content-Type": "text/plain;charset=UTF-8",
+            "x-api-key": NVE_API_KEY,
+            // Accept: "application/json",
+            // "Content-Type": "application/json",
         },
 
         // redirect: "follow", // manual, *follow, error
@@ -47,5 +48,6 @@ async function getData(url = "", data = {}) {
         // body: JSON.stringify(data), // body data type must match "Content-Type" header
     });
 
-    return response.json(); // parses JSON response into native JavaScript objects
+    const data = await response.json(); // parses JSON response into native JavaScript objects
+    return data;
 }
