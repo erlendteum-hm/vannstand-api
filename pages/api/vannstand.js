@@ -19,7 +19,10 @@ export default async function handler(req, res) {
     month = month < 10 ? "0" + month : month;
     let day = fromDate.getDate();
     day = day < 10 ? "0" + day : day;
-    const referenceTime = `${year}-${month}-${day}T00:00/P${daySpan}D`;
+    let hour = fromDate.getHours();
+    hour = hour < 10 ? "0" + hour : hour;
+
+    const referenceTime = `${year}-${month}-${day}T${hour}:00/P${daySpan}D`;
 
     const EndPoint = `${base}${path}StationId=${stationId}&Parameter=${parameter}&ResolutionTime=${resolutionTime}&ReferenceTime=${referenceTime}`;
 
