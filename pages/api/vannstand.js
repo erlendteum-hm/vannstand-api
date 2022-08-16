@@ -22,7 +22,17 @@ export default async function handler(req, res) {
     let hour = fromDate.getHours();
     hour = hour < 10 ? "0" + hour : hour;
 
-    const referenceTime = `${year}-${month}-${day}T${hour}:00/P${daySpan}D`;
+    /**
+        ReferenceTime; Describes the time interval to get returned observations from. The interval has a start time and a end time.
+        ReferenceTime is implemented using the ISO-8601 standard and with some extensions.
+        The "/" is used as a separator between the start time and end time. Example "2010-02-02/2012-03-03".
+        If left side of "/" is left undefined, it will be handled as an open start returning all observations prior to the end time
+        If right side of "/" is left undefined, it will be handled as an open end returning all observations from the start time and forward
+        The observations includes the start and end times. All times is given in UTC-0
+    */
+
+    // const referenceTime = `${year}-${month}-${day}T${hour}:00/P${daySpan}D`;
+    const referenceTime = `${year}-${month}-${day}T${hour}:00/`;
 
     const EndPoint = `${base}${path}StationId=${stationId}&Parameter=${parameter}&ResolutionTime=${resolutionTime}&ReferenceTime=${referenceTime}`;
 
