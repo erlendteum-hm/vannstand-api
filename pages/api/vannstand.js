@@ -18,6 +18,7 @@ export default async function handler(req, res) {
 
     // offset for zulu time
     fromDate = new Date(fromDate.setHours(fromDate.getHours() - offsetHours));
+    //console.log("###### ", fromDate);
 
     const year = fromDate.getFullYear();
 
@@ -40,8 +41,8 @@ export default async function handler(req, res) {
     */
 
     // const referenceTime = `${year}-${month}-${day}T${hour}:00/P${daySpan}D`;
-    // const referenceTime = `${year}-${month}-${day}T${hour}:00/`;
-    const referenceTime = `${year}-${month}-${day}T00:00/`;
+    const referenceTime = `${year}-${month}-${day}T${hour}:00/`;
+    //const referenceTime = `${year}-${month}-${day}T00:00/`;
 
     const EndPoint = `${base}${path}StationId=${stationId}&Parameter=${parameter}&ResolutionTime=${resolutionTime}&ReferenceTime=${referenceTime}`;
 
