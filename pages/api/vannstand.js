@@ -17,7 +17,8 @@ export default async function handler(req, res) {
     }
 
     // offset for zulu time
-    fromDate = new Date(fromDate.setHours(fromDate.getHours() - offsetHours));
+    fromDate = new Date(fromDate.setHours(-2));
+    //fromDate = new Date(fromDate.setHours(fromDate.getHours() - offsetHours));
     //console.log("###### ", fromDate);
 
     const year = fromDate.getFullYear();
