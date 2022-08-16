@@ -6,6 +6,7 @@ const stationId = "2.101.0";
 const parameter = "1000";
 const resolutionTime = "hour";
 const daySpan = 7;
+const offsetHours = 2;
 
 export default async function handler(req, res) {
     let fromDate;
@@ -14,11 +15,18 @@ export default async function handler(req, res) {
     } else {
         fromDate = new Date(new Date().setDate(new Date().getDate() - daySpan));
     }
+
+    // offset for zulu time
+    fromDate = new Date(fromDate.setHours(fromDate.getHours() - offsetHours));
+
     const year = fromDate.getFullYear();
+
     let month = fromDate.getMonth() + 1;
     month = month < 10 ? "0" + month : month;
+
     let day = fromDate.getDate();
     day = day < 10 ? "0" + day : day;
+
     let hour = fromDate.getHours();
     hour = hour < 10 ? "0" + hour : hour;
 
