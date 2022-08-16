@@ -32,7 +32,8 @@ export default async function handler(req, res) {
     */
 
     // const referenceTime = `${year}-${month}-${day}T${hour}:00/P${daySpan}D`;
-    const referenceTime = `${year}-${month}-${day}T${hour}:00/`;
+    // const referenceTime = `${year}-${month}-${day}T${hour}:00/`;
+    const referenceTime = `${year}-${month}-${day}T00:00/`;
 
     const EndPoint = `${base}${path}StationId=${stationId}&Parameter=${parameter}&ResolutionTime=${resolutionTime}&ReferenceTime=${referenceTime}`;
 
