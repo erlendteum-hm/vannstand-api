@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     if (req.query.fromDate) {
         fromDate = new Date(parseInt(req.query.fromDate));
     } else {
-        fromDate = new Date();
+        fromDate = new Date(new Date().setDate(new Date().getDate() - daySpan));
     }
     const year = fromDate.getFullYear();
     let month = fromDate.getMonth() + 1;
