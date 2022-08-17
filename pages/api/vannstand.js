@@ -1,59 +1,141 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
+// Store api-key in environment
 const NVE_API_KEY = process.env.NVE_API_KEY;
-const base = "https://hydapi.nve.no";
-const path = "/api/v1/Observations?";
-const stationId = "2.101.0";
-const parameter = "1000";
-const resolutionTime = "hour";
-const daySpan = 7;
-const offsetHours = 2;
 
-export default async function handler(req, res) {
-    let fromDate;
-    if (req.query.fromDate) {
-        fromDate = new Date(parseInt(req.query.fromDate));
-    } else {
-        fromDate = new Date(new Date().setDate(new Date().getDate() - daySpan));
+// NVE-Api constants
+const _base = "https://hydapi.nve.no";
+const _path = "/api/v1/Observations?";
+const _stationId = "2.101.0";
+const _parameter = "1000";
+const _resolutionTime = "hour";
+
+// Endpoint constants
+const OFFSETHOURS = -2;
+const DAYSPAN = 7;
+const MINDAYSPAN = 1;
+const MAXDAYSPAN = 15;
+const MINFULLYEAR = 2017;
+const MAXFULLYEAR = new Date().getFullYear() + 1;
+const TODAYDATE = new Date(
+    new Date(new Date(new Date().setHours(0)).setMinutes(0)).setSeconds(0)
+);
+
+// Validate date-inputs ref constants
+const validateInputDate = (dateParam) => {
+    const dateObject = new Date(parseInt(dateParam));
+    if (dateObject.getTime()) {
+        if (
+            dateObject.getFullYear() > MINFULLYEAR &&
+            dateObject.getFullYear() < MAXFULLYEAR
+        ) {
+            return true;
+        }
+    }
+    return false;
+};
+
+// Validate daycount ref constants
+const validateDayCount = (daycountParam) => {
+    if (
+        parseInt(daycountParam) >= MINDAYSPAN &&
+        parseInt(daycountParam) <= MAXDAYSPAN
+    ) {
+        return true;
+    }
+    return false;
+};
+
+// Validate query-params
+const validateParams = async (req) => {
+    let fromDate, toDate, dayCount;
+
+    if (req.query.fromdate && validateInputDate(req.query.fromdate)) {
+        fromDate = new Date(parseInt(req.query.fromdate));
+        fromDate = formatDate(fromDate);
     }
 
+    if (req.query.todate && validateInputDate(req.query.todate)) {
+        toDate = new Date(parseInt(req.query.todate));
+        toDate = formatDate(toDate, OFFSETHOURS - 1);
+    }
+
+    if (req.query.daycount && validateDayCount(req.query.daycount)) {
+        dayCount = parseInt(req.query.daycount);
+    }
+
+    return {
+        fromDate,
+        toDate,
+        dayCount,
+    };
+};
+
+// Format date to NVE-api iso
+const formatDate = (date, offset = OFFSETHOURS) => {
+    let dateObject = new Date(date);
     // offset for zulu time
-    fromDate = new Date(fromDate.setHours(-2));
-    //fromDate = new Date(fromDate.setHours(fromDate.getHours() - offsetHours));
-    //console.log("###### ", fromDate);
+    dateObject = new Date(dateObject.setHours(offset));
 
-    const year = fromDate.getFullYear();
+    const year = dateObject.getFullYear();
 
-    let month = fromDate.getMonth() + 1;
+    let month = dateObject.getMonth() + 1;
     month = month < 10 ? "0" + month : month;
 
-    let day = fromDate.getDate();
+    let day = dateObject.getDate();
     day = day < 10 ? "0" + day : day;
 
-    let hour = fromDate.getHours();
+    let hour = dateObject.getHours();
     hour = hour < 10 ? "0" + hour : hour;
 
+    // return `${year}-${month}-${day}T${hour}:00`;
+
+    return `${year}-${month}-${day}T${hour}:00`;
+};
+
+// Format NVE-api parameter referenceTime based on inputs
+const formatReferenceTime = ({ fromDate, toDate, dayCount }) => {
     /**
-        ReferenceTime; Describes the time interval to get returned observations from. The interval has a start time and a end time.
-        ReferenceTime is implemented using the ISO-8601 standard and with some extensions.
-        The "/" is used as a separator between the start time and end time. Example "2010-02-02/2012-03-03".
-        If left side of "/" is left undefined, it will be handled as an open start returning all observations prior to the end time
-        If right side of "/" is left undefined, it will be handled as an open end returning all observations from the start time and forward
-        The observations includes the start and end times. All times is given in UTC-0
-    */
+     *  Valid parameter combinations
+     *
+     *  - fromDate && toDate && dayCount | use fromDate and toDate
+     *  - fromDate && toDate
+     *  - fromDate && dayCount
+     *  - toDate && dayCount
+     *  - dayCount | use Now() for toDate
+     *  - fromDate OR toDate - use $DAYSPAN
+     *  - no params | use Now() for toDate and $DAYSPAN for dayCount
+     *
+     *  */
 
-    // const referenceTime = `${year}-${month}-${day}T${hour}:00/P${daySpan}D`;
-    const referenceTime = `${year}-${month}-${day}T${hour}:00/`;
-    //const referenceTime = `${year}-${month}-${day}T00:00/`;
+    if (fromDate && toDate) {
+        return `${fromDate}/${toDate}`;
+    }
 
-    const EndPoint = `${base}${path}StationId=${stationId}&Parameter=${parameter}&ResolutionTime=${resolutionTime}&ReferenceTime=${referenceTime}`;
+    if (fromDate && dayCount) {
+        return `${fromDate}/P${dayCount}D`;
+    }
 
-    const vannstandData = await getData(EndPoint, {}).then((data) => {
-        return data;
-    });
+    if (toDate && dayCount) {
+        return `P${dayCount}D/${toDate}`;
+    }
 
-    res.status(200).send({ vannstandData });
-}
+    if (dayCount) {
+        let today = formatDate(TODAYDATE, OFFSETHOURS);
+        return `P${dayCount}D/${today}`;
+    }
 
+    if (fromDate) {
+        return `P${DAYSPAN}D/${fromDate}`;
+    }
+
+    if (toDate) {
+        return `${fromDate}/P${DAYSPAN}D`;
+    }
+
+    let today = formatDate(TODAYDATE, OFFSETHOURS);
+    return `P${DAYSPAN}D/${today}`;
+};
+
+// Request data from NVE
 async function getData(url = "", data = {}) {
     const response = await fetch(url, {
         method: "GET", // *GET, POST, PUT, DELETE, etc.
@@ -74,4 +156,27 @@ async function getData(url = "", data = {}) {
 
     const measures = await response.json(); // parses JSON response into native JavaScript objects
     return measures;
+}
+
+/**
+ *
+ *
+ * @param {*} req
+ * @param {*} res
+ */
+export default async function handler(req, res) {
+    const reqParams = await validateParams(req);
+
+    const referenceTime = formatReferenceTime(reqParams);
+
+    const EndPoint = `${_base}${_path}StationId=${_stationId}&Parameter=${_parameter}&ResolutionTime=${_resolutionTime}&ReferenceTime=${referenceTime}`;
+
+    try {
+        const vannstandData = await getData(EndPoint, {}).then((data) => {
+            return data;
+        });
+        res.status(200).send({ vannstandData });
+    } catch {
+        res.status(500).json({ error: "failed to load data" });
+    }
 }
