@@ -167,14 +167,18 @@ async function getData(url = "", data = {}) {
 export default async function handler(req, res) {
     const reqParams = await validateParams(req);
 
-    const referenceTime = formatReferenceTime(reqParams);
+    // sjekk CacheDB for data
 
+    const referenceTime = formatReferenceTime(reqParams);
     const EndPoint = `${_base}${_path}StationId=${_stationId}&Parameter=${_parameter}&ResolutionTime=${_resolutionTime}&ReferenceTime=${referenceTime}`;
 
     try {
         const vannstandData = await getData(EndPoint, {}).then((data) => {
             return data;
         });
+
+        // Legg data i CacheDB
+
         res.status(200).send({ vannstandData });
     } catch {
         res.status(500).json({ error: "failed to load data" });
